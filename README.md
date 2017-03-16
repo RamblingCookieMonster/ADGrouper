@@ -115,41 +115,41 @@ Let's see how this works!
 # Review info before querying AD:
 Get-ADDynamicGroup \\Path\To\Example.yaml
 
-    TargetGroup  : TargetGroup
-    Recurse      : True
-    Purge        : True
-    Expand       : True
-    IncludeQuery : 
-    Include      : {@{Account=SourceGroup1; Recurse=True; Purge=True; Expand=True},
-                   @{Account=SourceGroup2; Recurse=True; Purge=True; Expand=True},
-                   @{Account=SourceGroupRaw; Recurse=True; Purge=True; Expand=False}}
-    Exclude      : @{Account=RestrictedUsers; Recurse=True; Purge=True; Expand=True}
-    ExcludeQuery : 
+    # TargetGroup  : TargetGroup
+    # Recurse      : True
+    # Purge        : True
+    # Expand       : True
+    # IncludeQuery : 
+    # Include      : {@{Account=SourceGroup1; Recurse=True; Purge=True; Expand=True},
+    #                @{Account=SourceGroup2; Recurse=True; Purge=True; Expand=True},
+    #                @{Account=SourceGroupRaw; Recurse=True; Purge=True; Expand=False}}
+    # Exclude      : @{Account=RestrictedUsers; Recurse=True; Purge=True; Expand=True}
+    # ExcludeQuery : 
 
 # Now, let's see what would actually change
 $Yaml | Get-ADDynamicGroup | Expand-ADDynamicGroup
 
-    Group      : TargetGroup
-    Account    : ManualAccount1
-    Action     : Remove
-    Type       : 
+    # Group      : TargetGroup
+    # Account    : ManualAccount1
+    # Action     : Remove
+    # Type       : 
 
-    Group      : TargetGroup
-    Account    : Account3
-    Action     : Add
-    Type       : 
+    # Group      : TargetGroup
+    # Account    : Account3
+    # Action     : Add
+    # Type       : 
 
-    Group      : TargetGroup
-    Account    : SourceGroupRaw
-    Action     : Add
-    Type       : 
+    # Group      : TargetGroup
+    # Account    : SourceGroupRaw
+    # Action     : Add
+    # Type       : 
 
 # Perfect, this is exactly what I want!  Let's whatif, just in case.
 $Yaml | Invoke-ADGrouper -WhatIf
 
-    What if: Group changed '[Remove] [ManualAccount1] to/from [TargetGroup]'
-    What if: Group changed '[Add] [Account3] to/from [TargetGroup]'
-    What if: Group changed '[Add] [SourceGroupRaw] to/from [TargetGroup]'
+    # What if: Group changed '[Remove] [ManualAccount1] to/from [TargetGroup]'
+    # What if: Group changed '[Add] [Account3] to/from [TargetGroup]'
+    # What if: Group changed '[Add] [SourceGroupRaw] to/from [TargetGroup]'
 
 # Let's make the change!  You might schedule this to run on some interval
 # In case it isn't obvious, keep your yaml files very secure, and use source control : )
@@ -158,12 +158,12 @@ $Yaml | Invoke-ADGrouper -Confirm:$False -Force
 # And did it work?
 Get-ADGroupMember TargetGroup | Select -ExpandProperty SamAccountName
 
-    SourceGroupRaw
-    Account1
-    Account3
-    AccountX
+    # SourceGroupRaw
+    # Account1
+    # Account3
+    # AccountX
 
-# Perfect!
+# Yep!
 ```
 
 ## Notes
