@@ -57,7 +57,7 @@ ADGrouper uses yaml.  We read yaml files with the following expected syntax:
     - '(c=d)'
 ```
 
-# Examples
+## Example
 
 Here are some groups and their users that we have in AD:
 
@@ -159,3 +159,7 @@ Get-ADGroupMember TargetGroup | Select -ExpandProperty SamAccountName
 
 # Perfect!
 ```
+
+## Notes
+
+A huge thanks to cloudbase for open sourcing their [PowerShell-Yaml module](https://github.com/cloudbase/powershell-yaml).  This is the only yaml module that (1) is in the PowerShell Gallery, and (2) converts to and from yaml.

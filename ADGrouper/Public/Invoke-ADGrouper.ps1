@@ -9,22 +9,23 @@
         YAML schema:
 
         'Target Group':        # Target security group we are populating
-          Purge:               # If specified, remove existing accounts in the group not included in this definition.  Like robocopy...  Default is false.
-          Recurse:             # If specified and a source is a group, recurse membership for that group.  Defaults to true.  Can be overriden at source level
-          Expand:              # If specified and a source is a group, expand to individual accounts within the group.  Defaults to true.  Can be overriden at source level
-          Exclude:             # Accounts to exclude from this group.  Overrides being included
-            Account1:
-            Account2:          # Exclude account with overriden Expand and Recurse
-              - Expand: False
+          Purge:               # Whether to remove existing accounts in the groupthat aren't included in this definition. Defaults to false
+          Recurse:             # Whether to recurse membership when source is a group. Defaults to true
+          Expand:              # Whether to expand to individual accounts within the group, or use the group explicitly. Defaults to true
+          Exclude:             # Accounts to exclude from this group
+            BadUser:           # Exclude account
+            BadGroup:          # Exclude account with overriden Recurse
               - Recurse: False
-          ExcludeQuery         # One or more LDAP queries whose resulting accounts are excluded from the target group
+          ExcludeQuery:        # One or more LDAP queries whose resulting accounts are excluded from the target group
+            - '(b=a)'
+          Include:             # Accounts to include in this group
+            GoodGroup:         # Include account with global settings
+            GoodGroup2:        # Include account with overriden Expand and Recurse
+            - Expand: False
+            - Recurse: False
           IncludeQuery:        # One or more LDAP queries whose resulting accounts are included in the target group
             - '(a=b)'
             - '(c=d)'
-          Account3             # Include account with global settings, or if not globally specified, Recurse=True, Expand=True
-          Account4             # Include account with overriden Expand and Recurse
-            - Expand: False
-            - Recurse: False
 
     .FUNCTIONALITY
         Active Directory
