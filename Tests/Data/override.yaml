@@ -1,0 +1,17 @@
+﻿'target_group2':
+  Recurse: False
+  Expand: False
+  Purge: True
+  Include:
+    good_account2:
+    'source group2':
+      Recurse: True
+      Expand: True
+      Purge: False    
+    'source group3':
+  IncludeQuery:
+    - '(c=d)'
+  ExcludeQuery:
+    - '(d=c)'
+  Exclude:
+    - bad_account2:

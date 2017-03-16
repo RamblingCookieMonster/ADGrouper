@@ -1,0 +1,10 @@
+﻿'target_group':
+  Include:
+    good_account:
+    'source group':
+  IncludeQuery:
+    - '(a=b)'
+  ExcludeQuery:
+    - '(b=a)'
+  Exclude:
+    bad_account:
