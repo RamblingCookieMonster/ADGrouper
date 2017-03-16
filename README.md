@@ -34,8 +34,8 @@ Pull requests and other contributions would be welcome!
 ### Prerequisites
 
 * PowerShell 3 or later
-* ActiveDirectory module (#1)
-* Target groups already exist (#4)
+* ActiveDirectory module ([#1](https://github.com/RamblingCookieMonster/ADGrouper/issues/1))
+* Target groups already exist ([#4](https://github.com/RamblingCookieMonster/ADGrouper/issues/4))
 * These yaml files are locked down, ideally in source control, and your team members know which groups are affected (maybe they have a clear OU or description)
 
 ## ADGrouper Yaml Schema
