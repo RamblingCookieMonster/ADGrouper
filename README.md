@@ -11,13 +11,17 @@ Pull requests and other contributions would be welcome!
 ## Instructions
 
 ```powershell
-# One time setup
+# Install with PowerShell 5 or PowerShellGet module
+    Install-Module PSDepend
+
+# Instaell via GitHub
     # Download the repository
     # Unblock the zip
     # Extract the ADGrouper folder to a module path (e.g. $env:USERPROFILE\Documents\WindowsPowerShell\Modules\)
 
 # Import the module.
-    Import-Module ADGrouper    #Alternatively, Import-Module \\Path\To\ADGrouper
+    Import-Module ADGrouper
+    #Alternatively, Import-Module \\Path\To\ADGrouper
 
 # Get commands in the module
     Get-Command -Module ADGrouper
