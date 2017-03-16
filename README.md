@@ -39,12 +39,11 @@ ADGrouper uses yaml.  We read yaml files with the following expected syntax:
  ```yaml
 'Target Group':        # Target security group we are populating
   Purge:               # Whether to remove existing accounts in the groupthat aren't included in this definition. Defaults to false
-  Recurse:             # Whether to recurse membership when source is a group. Defaults to true. Override at group level as needed
-  Expand:              # Whether to expand to individual accounts within the group. Defaults to true.  Override at group level as needed
+  Recurse:             # Whether to recurse membership when source is a group. Defaults to true
+  Expand:              # Whether to expand to individual accounts within the group, or use the group explicitly. Defaults to true
   Exclude:             # Accounts to exclude from this group
-    BadUser:
-    BadGroup:          # Exclude account with overriden Expand and Recurse
-      - Expand: False
+    BadUser:           # Exclude account
+    BadGroup:          # Exclude account with overriden Recurse
       - Recurse: False
   ExcludeQuery:        # One or more LDAP queries whose resulting accounts are excluded from the target group
     - '(b=a)'
