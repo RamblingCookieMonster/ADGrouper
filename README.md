@@ -12,7 +12,7 @@ Pull requests and other contributions would be welcome!
 
 ```powershell
 # Install with PowerShell 5 or PowerShellGet module
-    Install-Module PSDepend
+    Install-Module ADGrouper
 
 # Instaell via GitHub
     # Download the repository
