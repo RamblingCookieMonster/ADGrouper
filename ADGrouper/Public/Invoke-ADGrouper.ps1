@@ -36,8 +36,14 @@
     .PARAMETER Path
         Path to yaml containing dynamic group definition
 
+    .PARAMETER Logfile
+        If specified, output the set of actions taken, in a file compatible with -ReverseLog
+
+    .PARAMETER ReverseLog
+        If specified, take the specified -Logfile, and reverse the actions taken (add accounts that were removed from groups, remove accounts added to groups)
+
     .EXAMPLE
-        Invoke-ADGrouper $Yaml -Whatif
+        Invoke-ADGrouper -Path $Yaml -Whatif
 
         # See what Invoke-ADGrouper would do with yaml, without doing it
 
@@ -64,11 +70,21 @@
         [string]$InputObject,
 
         [parameter(ParameterSetName = 'file',
+                   Position = 0,
                    ValueFromPipelineByPropertyName = $True)]
         [Alias('FullName')]
         [string[]]$Path,
 
-        [switch]$Force
+        [switch]$Force,
+
+        [parameter(ParameterSetName = 'ReverseLog',
+                   Mandatory = $True)]
+        [parameter(ParameterSetName = 'yaml')]
+        [parameter(ParameterSetName = 'file')]
+        [string]$LogFile,
+
+        [parameter(ParameterSetName = 'ReverseLog')]
+        [switch]$ReverseLog
     )
     begin
     {
@@ -77,21 +93,48 @@
     }
     process
     {
-        $ToProcess = [System.Collections.ArrayList]@()
-        if($PSCmdlet.ParameterSetName -eq 'file')
+        if($PSCmdlet.ParameterSetName -eq 'ReverseLog')
         {
-            foreach($File in $Path)
-            {
-                $ToProcess.AddRange( @(Get-Content $File -Raw) )
+
+            $ToChange = Import-Csv -Path $LogFile
+            foreach($Change in $ToChange){
+                if(-not $Change.'Group')
+                {
+                    Write-Warning "Skipping [$Change]: No Group specified"
+                    continue
+                }
+                if(-not $Change.'Account')
+                {
+                    Write-Warning "Skipping [$Change]: No Account specified"
+                    continue
+                }
+                if('Add', 'Remove' -notcontains $Change.'Action')
+                {
+                    Write-Warning "Skipping [$Change]: No valid Action specified"
+                    continue
+                }
+                if($Change.Action -eq 'Add') {$Change.Action = 'Remove'}
+                if($Change.Action -eq 'Remove') {$Change.Action = 'Add'}
             }
         }
         else
         {
-            [void]$ToProcess.Add($InputObject)
+            $ToProcess = [System.Collections.ArrayList]@()
+            if($PSCmdlet.ParameterSetName -eq 'file')
+            {
+                foreach($File in $Path)
+                {
+                    $ToProcess.AddRange( @(Get-Content $File -Raw) )
+                }
+            }
+            else
+            {
+                [void]$ToProcess.Add($InputObject)
+            }
+            Write-Verbose ($ToProcess | Out-String)
+            $ToExpand = $ToProcess | Get-ADDynamicGroup
+            $ToChange = Expand-ADDynamicGroup -InputObject $ToExpand
         }
-        Write-Verbose ($ToProcess | Out-String)
-        $ToExpand = $ToProcess | Get-ADDynamicGroup
-        $ToChange = Expand-ADDynamicGroup -InputObject $ToExpand
         foreach($Change in $ToChange)
         {
             $Todo = "[{0}] [{1}] to/from [{2}]" -f $Change.Action, $Change.Account, $Change.Group
@@ -99,14 +142,27 @@
             {    
                 if($Force -or $PSCmdlet.ShouldContinue("Are you REALLY sure you want to change '$Todo'?", "Removing '$Todo'", [ref]$ConfirmAll, [ref]$RejectAll))
                 {
-                    switch ($Change.Action)
+                    Try
                     {
-                        'Add' {
-                            Add-ADGroupMember -Identity $Change.Group -Members $Change.Account
+                        $Status = 'Success'
+                        switch ($Change.Action)
+                        {
+                            'Add' {
+                                Add-ADGroupMember -Identity $Change.Group -Members $Change.Account -ErrorAction Stop
+                            }
+                            'Remove' {
+                                Remove-ADGroupMember -Identity $Change.Group -Members $Change.Account -ErrorAction Stop
+                            }
                         }
-                        'Remove' {
-                            Remove-ADGroupMember -Identity $Change.Group -Members $Change.Account
-                        }
+                    }
+                    catch
+                    {
+                        $Status = "Error: $_"
+                        Write-Warning $_
+                    }
+                    finally
+                    {
+                        $Change | Select *, @{label='Status';expression={ $Status}} | Export-CSV -Path $LogFile -NoTypeInformation -Append -Force
                     }
                 }
             }

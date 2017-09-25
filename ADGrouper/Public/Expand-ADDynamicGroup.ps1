@@ -40,7 +40,8 @@
     #>
     [cmdletbinding()]
     param(
-        [parameter(ValueFromPipeline= $True)]
+        [parameter(ValueFromPipeline= $True,
+                   Position = 0)]
         [PSTypeName('adgrouper.group')]
         [psobject[]]$InputObject,
         [switch]$IncludeType
@@ -126,16 +127,22 @@
                     Write-Verbose "No accounts found for ExcludeQuery [$Query]"              
                 }
             }
-            $Excludes = $Excludes | Sort -Unique
-            $Includes = $Includes | Where {$Excludes -notcontains $_} | Select -Unique
+            $ExplicitExcludes = $Excludes | Sort -Unique
+            $Includes = $Includes | Where {$ExplicitExcludes -notcontains $_} | Select -Unique
             $Existing = Expand-Account -Type Group -Identity $Group.TargetGroup -Expand
+
+            # If an item was explicitly excluded, we remove it, regardless of purge or source includes
+            $ToRemove = $Existing | Where {$ExplicitExcludes -contains $_} | Sort -Unique        
+            
+            # If an items was not explicitly excluded, and not included in source groups, remove those accounts
+            $ToRemoveIfPurge = $Existing | Where {$Includes -notcontains $_ -and $ToRemove -notcontains $_} | Sort -Unique
+
+            # Only add accounts if they were not explicitly included, and not already in the group
+            $ToAdd = $Includes | Where {$Existing -notcontains $_ -and $ToRemove -notcontains $_ -and $ToRemoveIfPurge -notcontains $_} | Sort -Unique
         
-            $ToRemove = $Existing | Where {$Includes -notcontains $_} | Sort -Unique
-            $ToAdd = $Includes | Where {$Existing -notcontains $_} | Sort -Unique
-        
-            if($Group.Purge -and $null -notlike $ToRemove)
+            if($Group.Purge -and $null -notlike $ToRemoveIfPurge)
             {
-                foreach($Account in $ToRemove)
+                foreach($Account in $ToRemoveIfPurge)
                 {
                     [pscustomobject]@{
                         PSTypeName = 'adgrouper.action'
@@ -154,6 +161,17 @@
                     Group = $Group.TargetGroup
                     Account = $Account
                     Action = 'Add'
+                    Type = Get-ADObjectClass -sAMAccountName $Account -IncludeType $IncludeType
+                    Definition = $Group
+                }
+            }
+            foreach($Account in $ToRemove)
+            {
+                [pscustomobject]@{
+                    PSTypeName = 'adgrouper.action'
+                    Group = $Group.TargetGroup
+                    Account = $Account
+                    Action = 'Remove'
                     Type = Get-ADObjectClass -sAMAccountName $Account -IncludeType $IncludeType
                     Definition = $Group
                 }

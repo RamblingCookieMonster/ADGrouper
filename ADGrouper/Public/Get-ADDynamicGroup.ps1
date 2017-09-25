@@ -39,6 +39,7 @@
         [string]$InputObject,
 
         [parameter(ParameterSetName = 'file',
+                   Position = 0,
                    ValueFromPipelineByPropertyName = $True)]
         [Alias('FullName')]
         [string[]]$Path
@@ -109,6 +110,19 @@
                     $ExcludeQuery = $Group.ExcludeQuery
                 }
 
+                $Include = $null
+                if($Group.Include) {
+                    $Include = $Group.Include.keys | Foreach {
+                        Parse-Option -Target $Group -Name $_ -Type Include
+                    }
+                }
+                $Exclude = $null
+                if($Group.Exclude) {
+                    $Exclude = $Group.Exclude.keys | Foreach {
+                        Parse-Option -Target $Group -Name $_ -Type Exclude
+                    }
+                }
+
                 [pscustomobject]@{
                     PSTypeName = 'adgrouper.group'
                     TargetGroup = $GroupName
@@ -116,12 +130,8 @@
                     Purge = $Purge
                     Expand = $Expand
                     IncludeQuery = $IncludeQuery
-                    Include = $Group.Include.keys | Foreach {
-                        Parse-Option -Target $Group -Name $_ -Type Include
-                    }
-                    Exclude = $Group.Exclude.keys | Foreach {
-                        Parse-Option -Target $Group -Name $_ -Type Exclude
-                    }
+                    Include = $Include
+                    Exclude = $Exclude
                     ExcludeQuery = $ExcludeQuery
                 }
             }
